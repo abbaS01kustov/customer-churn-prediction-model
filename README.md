@@ -1,4 +1,4 @@
-# Customer Churn Prediction ML Project
+# Customer Churn Prediction Model
 
 ## Data Preparation
 
