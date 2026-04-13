@@ -1,200 +1,195 @@
-# Customer Churn Prediction Model
 
-## Data Preparation
+# Customer Churn Prediction API
 
-### 1. Data Ingestion
+### End-to-End Machine Learning System for Proactive Customer Retention
 
-* Imported required Python libraries for data manipulation and modeling
-* Loaded the dataset from a CSV file into a Pandas DataFrame
-* Used `.T` (transpose) where necessary for improved readability during inspection
+## Project Overview
 
-### 2. Data Cleaning & Standardization
+Customer churn is a critical business problem that directly impacts revenue and growth. This project delivers an **end-to-end machine learning solution** that predicts the likelihood of customer churn and exposes the model via a **production-ready REST API**.
 
-To ensure consistency and model readiness:
+From a data leadership perspective, this system is designed not just for modeling accuracy, but for **real-world deployment and business decision-making**.
 
-* Standardized column names (lowercase, replaced spaces with underscores)
-* Normalized categorical values for uniformity
-* Verified correct data types across all columns
+### Key Objectives
 
-### 3. Target Variable Encoding
+* Predict customer churn probability using structured customer data
+* Enable real-time scoring via API
+* Support proactive retention strategies (e.g., targeted promotions)
+* Deliver a scalable, reproducible ML pipeline
 
-* Converted `churn` from categorical (`"yes"/"no"`) to numerical:
+## Machine Learning Approach
 
-  * `1` → Churn (customer left)
-  * `0` → Retained
+* **Model**: Logistic Regression (regularized)
+* **Feature Engineering**:
 
-This transformation enables compatibility with machine learning algorithms.
+  * Categorical encoding via `DictVectorizer`
+  * Numerical feature integration
+* **Validation Strategy**:
 
-## Validation Framework
+  * Stratified K-Fold Cross Validation (to handle class imbalance)
+* **Evaluation Metric**:
 
-### Train / Validation / Test Split
-We implemented a **three-way split** using `train_test_split`:
-* **60%** → Training
-* **20%** → Validation
-* **20%** → Test
+  * ROC AUC (robust for imbalanced classification)
 
-Steps:
-1. Split full dataset into:
-   * 80% training (full_train)
-   * 20% test
-2. Split full_train into:
-   * 75% train
-   * 25% validation (i.e., 20% of total data)
 
-Additional steps:
-* Reset indices using `reset_index(drop=True)`
-* Separated features (`X`) and target (`y`)
-* Removed `churn` from feature datasets to prevent leakage
+## Model Performance
 
-## Exploratory Data Analysis (EDA)
+| Metric    | Value               |
+| --------- | ------------------- |
+| ROC AUC   | **~0.84**           |
+| Stability | ± 0.01 across folds |
 
-### Missing Values
-* Verified that the dataset contains **no missing values**
+### Interpretation
 
-### Target Distribution
-* Total customers: **5634**
-* Churned: **1521 (~27%)**
-* Retained: **4113 (~73%)**
+* The model demonstrates **strong discriminatory power**
+* Performance is consistent across validation folds
+* Indicates a **reliable baseline model** suitable for deployment
 
-Insight: The dataset is **imbalanced**, which impacts model evaluation strategy.
+## API Architecture
+This project includes a **Flask-based prediction service**:
 
-### Churn Rate
-* Computed using:
-  * `value_counts(normalize=True)`
-  * `.mean()` (valid for binary variables)
+```text
+Client (predict.py / external system)
+        ↓
+HTTP POST Request
+        ↓
+Flask API (/predict)
+        ↓
+Model Inference (Logistic Regression)
+        ↓
+JSON Response (probability + decision)
+```
 
-### Feature Types
-* **Numerical Features**:
-  * `tenure`, `monthlycharges`, `totalcharges`
-* **Categorical Features**:
-  * All remaining variables
 
-## Feature Importance
+## Running the API Locally
 
-### 1. Churn Rate by Group
-* Compared churn rates across categorical segments
-* Identified high-risk groups (e.g., contract type)
+### 1. Clone repository
 
-### 2. Risk Ratio
-* Measures relative likelihood of churn:
+```bash
+git clone https://github.com/abbaS01kustov/customer-churn-project.git
+cd customer-churn-project
+```
 
-  [
-  \text{Risk Ratio} = \frac{\text{Group Churn Rate}}{\text{Global Churn Rate}}
-  ]
+### 2. Activate environment
 
-* Interpretation:
-  * > 1 → Higher churn risk
-  * < 1 → Lower churn risk
+```bash
+source venv/bin/activate
+```
 
-### 3. Mutual Information
-* Quantifies how much information a feature provides about churn
-* Enables ranking of categorical variables by importance
+### 3. Start API server
 
-### 4. Correlation (Numerical Features)
-* Used **Pearson correlation coefficient**
-* Evaluated strength of linear relationship with churn
-* Ranked features using absolute correlation values
+```bash
+python app/app.py
+```
 
-## Feature Engineering
+Server will run at:
 
-### One-Hot Encoding
-* Converted categorical variables into numeric format using `DictVectorizer`
-* Workflow:
+```text
+http://localhost:9696
+```
 
-  1. Convert DataFrame → list of dictionaries (`to_dict(orient='records')`)
-  2. Fit `DictVectorizer` on training data
-  3. Transform validation/test data using same encoder
+## API Usage Example
 
-## Model: Logistic Regression
+### Endpoint
 
-### Why Logistic Regression?
-* Suitable for **binary classification**
-* Outputs probabilities (0–1), not just class labels
-* Fast, interpretable, and effective baseline model
+```http
+POST /predict
+```
 
-### Model Formulation
-[
-g(x) = \sigma(w_0 + w^T x)
-]
+### Sample Request (Python)
 
-Where:
-* ( \sigma(z) = \frac{1}{1 + e^{-z}} ) (sigmoid function)
+```python
+import requests
 
-## Model Training
-* Trained using Scikit-Learn’s `LogisticRegression`
-* Extracted:
-  * Coefficients (`coef_`)
-  * Intercept (`intercept_`)
+url = "http://localhost:9696/predict"
 
-### Predictions
-* **Hard predictions** → `predict()`
-* **Probabilities** → `predict_proba()[:, 1]`
+customer = {
+    "gender": "female",
+    "seniorcitizen": 0,
+    "partner": "yes",
+    "dependents": "no",
+    "phoneservice": "no",
+    "multiplelines": "no_phone_service",
+    "internetservice": "dsl",
+    "onlinesecurity": "no",
+    "onlinebackup": "yes",
+    "deviceprotection": "no",
+    "techsupport": "no",
+    "streamingtv": "no",
+    "streamingmovies": "no",
+    "contract": "month-to-month",
+    "paperlessbilling": "yes",
+    "paymentmethod": "electronic_check",
+    "tenure": 1,
+    "monthlycharges": 29.85,
+    "totalcharges": 29.85
+}
 
-## Model Evaluation
-### Accuracy
-* Achieved ~**80% accuracy** on validation set
-Limitation:
-* Baseline (dummy model) achieves ~73% → Accuracy alone is insufficient.
+response = requests.post(url, json=customer)
+print(response.json())
+```
 
-## Advanced Metrics
-### Confusion Matrix
-* True Positives (TP)
-* True Negatives (TN)
-* False Positives (FP)
-* False Negatives (FN)
+### Sample Response
 
-### Precision & Recall
-* **Precision** → Accuracy of positive predictions
-* **Recall** → Ability to detect actual churners
+```json
+{
+  "churn_probability": 0.6283,
+  "churn": true
+}
+```
 
-### F1 Score
-* Harmonic mean of precision and recall
+## cURL Example
 
-## ROC Curve & AUC
-### ROC Curve
-* Plots:
-  * True Positive Rate (TPR)
-  * False Positive Rate (FPR)
+```bash
+curl -X POST http://localhost:9696/predict \
+-H "Content-Type: application/json" \
+-d '{
+  "tenure": 1,
+  "monthlycharges": 29.85,
+  "totalcharges": 29.85,
+  "contract": "month-to-month",
+  "internetservice": "dsl"
+}'
+```
 
-### AUC (Area Under Curve)
-* 0.5 → Random model
-* 1.0 → Perfect model
-* Model performance:
-  * ~0.8 → Good
 
-Interpretation:
-Probability that the model ranks a random churner higher than a non-churner.
+## Example Output (CLI)
 
-## Cross-Validation
-### K-Fold Strategy
-* Split data into K subsets
-* Train on K-1 folds, validate on remaining fold
-* Repeat K times
+```text
+{'churn_probability': 0.6283, 'churn': True}
+sending promo email to xyz-123
+```
 
-### Results
-* Mean AUC: ~**0.84**
-* Low standard deviation → Stable model
+## Project Structure
 
-## Hyperparameter Tuning
-### Regularization Parameter (`C`)
-* Controls model complexity:
-  * Small `C` → Strong regularization
-  * Large `C` → Less regularization
-
-### Approach
-* Tested multiple `C` values
-* Selected optimal value based on validation AUC
-
-## Deployment Perspective
-* Model accepts **customer data as input (dictionary)**
-* Outputs:
-  * Churn probability score
-* Enables:
-  * Real-time predictions
-  * Targeted retention campaigns
+```text
+customer_churn/
+│
+├── app/
+│   ├── app.py          # Flask API
+│   └── predict.py      # Client script
+├── model_C=1.0.bin     # Trained model
+├── train.ipynb         # Model development
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
 
 ## Business Impact
-This model enables:
-* Proactive churn prevention
-* Optimized marketing spend
-* Increased customer lifetime value (CLV)
+
+This system enables:
+
+* **Targeted retention campaigns**
+* Reduced customer acquisition cost
+* Data-driven decision making
+* Real-time scoring for operational systems
+
+
+## Future Improvements
+
+* Model upgrade (XGBoost / LightGBM)
+* Feature enrichment (behavioral + temporal features)
+* Threshold optimization based on ROI
+* Deployment (Docker + Cloud)
+* Frontend dashboard for business users
+
+
