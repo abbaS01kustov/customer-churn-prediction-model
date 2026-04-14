@@ -1,101 +1,105 @@
-
 # Customer Churn Prediction API
 
-### End-to-End Machine Learning System for Proactive Customer Retention
+### End-to-End Machine Learning System with Dockerized Deployment
 
 ## Project Overview
 
-Customer churn is a critical business problem that directly impacts revenue and growth. This project delivers an **end-to-end machine learning solution** that predicts the likelihood of customer churn and exposes the model via a **production-ready REST API**.
+Customer churn directly impacts revenue, making early prediction critical for retention strategies. This project delivers a **production-ready machine learning system** that predicts churn probability and serves predictions via a **Dockerized REST API**.
 
-From a data leadership perspective, this system is designed not just for modeling accuracy, but for **real-world deployment and business decision-making**.
+From a data leadership perspective, the system emphasizes:
 
-### Key Objectives
+* **Reproducibility (Docker)**
+* **Scalability (API-first design)**
+* **Business impact (actionable predictions)**
 
-* Predict customer churn probability using structured customer data
-* Enable real-time scoring via API
-* Support proactive retention strategies (e.g., targeted promotions)
-* Deliver a scalable, reproducible ML pipeline
+
+## Key Objectives
+
+* Predict customer churn probability using structured data
+* Serve predictions via a **REST API**
+* Ensure **environment consistency using Docker**
+* Enable real-time decision-making for retention strategies
+
 
 ## Machine Learning Approach
 
-* **Model**: Logistic Regression (regularized)
+* **Model**: Regularized Logistic Regression
 * **Feature Engineering**:
 
-  * Categorical encoding via `DictVectorizer`
+  * `DictVectorizer` for categorical encoding
   * Numerical feature integration
-* **Validation Strategy**:
+* **Validation**:
 
-  * Stratified K-Fold Cross Validation (to handle class imbalance)
+  * Stratified K-Fold Cross Validation
 * **Evaluation Metric**:
 
   * ROC AUC (robust for imbalanced classification)
-
+    
 
 ## Model Performance
 
-| Metric    | Value               |
-| --------- | ------------------- |
-| ROC AUC   | **~0.84**           |
-| Stability | ± 0.01 across folds |
+| Metric    | Value     |
+| --------- | --------- |
+| ROC AUC   | **~0.84** |
+| Stability | ±0.01     |
 
 ### Interpretation
 
-* The model demonstrates **strong discriminatory power**
-* Performance is consistent across validation folds
-* Indicates a **reliable baseline model** suitable for deployment
+* Strong separation between churners and non-churners
+* Consistent performance across folds
+* Reliable baseline for production deployment
 
-## API Architecture
-This project includes a **Flask-based prediction service**:
+
+## System Architecture
 
 ```text
-Client (predict.py / external system)
+Client (API request)
         ↓
-HTTP POST Request
-        ↓
-Flask API (/predict)
+Docker Container (Flask + Gunicorn)
         ↓
 Model Inference (Logistic Regression)
         ↓
-JSON Response (probability + decision)
+JSON Response (Probability + Decision)
 ```
 
 
-## Running the API Locally
+# Dockerized Deployment
 
-### 1. Clone repository
+## 🔧 Build Docker Image
 
 ```bash
-git clone https://github.com/abbaS01kustov/customer-churn-project.git
-cd customer-churn-project
+docker build -t churn-app .
 ```
 
-### 2. Activate environment
+## Run Container
 
 ```bash
-source venv/bin/activate
+docker run -it --rm -p 9696:9696 churn-app
 ```
 
-### 3. Start API server
-
-```bash
-python app/app.py
-```
-
-Server will run at:
+## Access API
 
 ```text
 http://localhost:9696
 ```
 
-## API Usage Example
+## Why Docker Matters Here
 
-### Endpoint
+* Eliminates "works on my machine" issues
+* Ensures identical environments across dev, test, production
+* Enables seamless cloud deployment
+* Simplifies dependency management
+
+
+# API Usage
+
+## Endpoint
 
 ```http
 POST /predict
 ```
 
-### Sample Request (Python)
+## Python Example
 
 ```python
 import requests
@@ -128,15 +132,6 @@ response = requests.post(url, json=customer)
 print(response.json())
 ```
 
-### Sample Response
-
-```json
-{
-  "churn_probability": 0.6283,
-  "churn": true
-}
-```
-
 ## cURL Example
 
 ```bash
@@ -151,45 +146,48 @@ curl -X POST http://localhost:9696/predict \
 }'
 ```
 
+## Sample Response
 
-## Example Output (CLI)
-
-```text
-{'churn_probability': 0.6283, 'churn': True}
-sending promo email to xyz-123
+```json
+{
+  "churn_probability": 0.6283,
+  "churn": true
+}
 ```
 
-## Project Structure
+
+# Project Structure
 
 ```text
 customer_churn/
 │
 ├── app/
-│   ├── app.py          # Flask API
-│   └── predict.py      # Client script
-├── model_C=1.0.bin     # Trained model
-├── train.ipynb         # Model development
-├── requirements.txt
+│   ├── predict.py        # API logic
+│   └── app.py            # Flask entry point
+├── model_C=1.0.bin       # Trained model
+├── train.ipynb           # Model development
+├── Dockerfile            # Container definition
+├── requirements.txt      # Dependencies
 ├── README.md
 └── .gitignore
 ```
 
-## Business Impact
+
+# Business Impact
 
 This system enables:
 
-* **Targeted retention campaigns**
-* Reduced customer acquisition cost
-* Data-driven decision making
-* Real-time scoring for operational systems
+* Targeted retention campaigns
+* Improved decision-making
+* Reduced churn rate
+* Improved customer lifetime value
+* Real-time scoring in production systems
 
 
-## Future Improvements
+# Future Improvements
 
-* Model upgrade (XGBoost / LightGBM)
-* Feature enrichment (behavioral + temporal features)
-* Threshold optimization based on ROI
-* Deployment (Docker + Cloud)
-* Frontend dashboard for business users
-
-
+* Upgrade model (XGBoost / LightGBM)
+* Add feature store (behavioral + temporal data)
+* Deploy to cloud (AWS/GCP/Azure)
+* Add monitoring & logging
+* Build frontend dashboard
