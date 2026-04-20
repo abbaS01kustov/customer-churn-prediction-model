@@ -10,13 +10,24 @@ with open(model_file, 'rb') as f_in:
 
 app = Flask('churn')
 
-@app.route('/predict', methods=['POST'])
+@app.route("/")
+def home():
+    return "Churn model is running"
+
+@app.route("/predict", methods=['GET', 'POST'])
 def predict():
     #json = python dictionary
-    customer = request.get_json()
+    customer = request.get_json(silent=True)
+    if customer is None:
+        return jsonify({
+        "error": "Request must be JSON with Content-Type: application/json"
+    }), 415
+    
+    if not customer:
+        return jsonify({'error': 'Invalid or missing JSON body'}), 400
 
     X = dv.transform([customer])
-    model.predict_proba(X)
+    #model.predict_proba(X)
     y_pred = model.predict_proba(X)[0, 1]
     churn = y_pred >= 0.5
 
