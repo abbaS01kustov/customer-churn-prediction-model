@@ -40,7 +40,7 @@ From a data leadership perspective, the system emphasizes:
 
 | Metric    | Value     |
 | --------- | --------- |
-| ROC AUC   | **~0.84** |
+| ROC AUC   | **~0.87** |
 | Stability | ±0.01     |
 
 ### Interpretation
